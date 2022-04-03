@@ -20,7 +20,7 @@ tcache_get (size_t tc_idx)
   return (void *) e;
 }
 ```
-And this is actually pretty interesting. When you ask from malloc/realloc/calloc/etc a chunk in the tcache range (from `0x0` to `0x400` bytes), `malloc` will try to see if there is an available free tcache chunk in the range of your requested chunk. If it finds one it will call `tcache_get` to fetch a the free chunk and it will return it back to the program that requested this chunk.
+And this is actually pretty interesting. When you ask from malloc/realloc/calloc/etc a chunk in the tcache range (from `0x0` to `0x400` bytes), `malloc` will try to see if there is an available free tcache chunk in the range of your requested chunk. If it finds one it will call `tcache_get` to fetch a free chunk and it will return it back to the program that requested this chunk.
 
 The most important thing you have to consider is how ptmalloc2 locates the tcache on the heap. And as you can see above it uses a global variable named `tcache`. This variable will be our target for our large bin attack later.
 ```c
