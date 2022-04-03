@@ -1,12 +1,12 @@
 # House of disruption
 In this article I will describe a new powerful heap house I crafted which is applicable from glibc versions `2.26` until `2.35` (latest at the moment of writing this article). It's a pretty simple House but quite powerful with what you can do with it!
 
-The main idea behind house of madness is: by performing a simple large bin attack (which until 2.35 is unpatched) against `tcache` pointer, we can fool glibc into thinking that `tcache` is somewhere else on the heap. By crafting a fake tcache inside the large bin which `tcache` pointer is pointing to after the large bin attack, we can easily make `malloc` to return arbitrary chunks.
+The main idea behind house of disruption is: by performing a simple large bin attack (which until 2.35 is unpatched) against `tcache` pointer, we can fool glibc into thinking that `tcache` is somewhere else on the heap. By crafting a fake tcache inside the large bin which `tcache` pointer is pointing to after the large bin attack, we can easily make `malloc` to return arbitrary chunks.
 
 The only requirements for the house of maddness is a libc leak which we need inorder to locate the `tcache` pointer in memory and the ability to perform a large bin attack. Quite minimalistic isn't?
 
 # Dive into malloc internals
-For the house of madness actually we just need to understand how tcache returns free tcache chunks back to the program.
+For the house of disruption actually we just need to understand how tcache returns free tcache chunks back to the program.
 ```c
 static __always_inline void *
 tcache_get (size_t tc_idx)
@@ -108,8 +108,8 @@ def house_of_disruption():
     
     # I will choose default_overflow_region as my target, you can choose any targets you like. Try to get a shell if you can ;)
     '''
-        2a6:1530│       0x7faddbc4a530 (program_invocation_short_name) —▸ 0x7fff07c5ee08 ◂— 'house_of_madness_patched'
-        2a7:1538│       0x7faddbc4a538 (program_invocation_name) —▸ 0x7fff07c5eded ◂— '/home/un1c0rn/house_of_madness/house_of_madness_patched'
+        2a6:1530│       0x7faddbc4a530 (program_invocation_short_name) —▸ 0x7fff07c5ee08 ◂— 'house_of_disruption_patched'
+        2a7:1538│       0x7faddbc4a538 (program_invocation_name) —▸ 0x7fff07c5eded ◂— '/home/un1c0rn/house_of_disruption/house_of_disruption_patched'
         2a8:1540│       0x7faddbc4a540 (default_overflow_region) ◂— 0x0
         2a9:1548│       0x7faddbc4a548 (default_overflow_region+8) ◂— 0x1
         2aa:1550│       0x7faddbc4a550 (default_overflow_region+16) ◂— 0x2
