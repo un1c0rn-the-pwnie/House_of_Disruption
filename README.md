@@ -3,7 +3,7 @@ In this article I will describe a new powerful heap house I crafted which is app
 
 The main idea behind house of disruption is: by performing a simple large bin attack (which until 2.35 is unpatched) against `tcache` pointer, we can fool glibc into thinking that `tcache` is somewhere else on the heap. By crafting a fake tcache inside the large bin which `tcache` pointer is pointing to after the large bin attack, we can easily make `malloc` to return arbitrary chunks.
 
-The only requirements for the house of maddness is a libc leak which we need inorder to locate the `tcache` pointer in memory and the ability to perform a large bin attack. Quite minimalistic isn't?
+The only requirements for the house of disruption is a libc leak which we need inorder to locate the `tcache` pointer in memory and the ability to perform a large bin attack. Quite minimalistic isn't?
 
 # Dive into malloc internals
 For the house of disruption actually we just need to understand how tcache returns free tcache chunks back to the program.
