@@ -20,7 +20,7 @@ tcache_get (size_t tc_idx)
   return (void *) e;
 }
 ```
-And this is actually pretty interesting. When you ask from `ptmalloc2` a chunk in the tcache range (from `0x0` to `0x410` bytes), `ptmalloc2` will try to see if there is an available free tcache chunk. If it finds one it will call `tcache_get` to fetch it from the tcache and will return it back to the program.
+And this is actually pretty interesting. When you ask from ptmalloc2 a chunk in the tcache range (from `0x0` to `0x410` bytes), ptmalloc2 will try to see if there is an available free tcache chunk. If it finds one it will call `tcache_get` to fetch it from the tcache and will return it back to the program.
 
 The most important thing you have to consider is how ptmalloc2 locates the tcache on the heap. And as you can see above it uses a global variable named `tcache`. This variable will be our target for our large bin attack later.
 ```c
@@ -33,7 +33,7 @@ Because ptmalloc2 blindly trusts this `tcache` pointer, if you are able to modif
 In our PoC the only place we can craft a fake tcache is on the heap and so we will perform a large bin attack to put a heap address into the `tcache` pointer.
 
 # Proof of Concept
-For a proof of concept I will use the same testbed I used for another House that I made. You can find it ![here](https://github.com/un1c0rn-the-pwnie/FSOPAgain/blob/main/poc3/house_of_error.c). If you remove the theme it's actually a simple testbed. In that testbed you have the ability to allocate chunks with a max size of `0x1000` bytes and you can free them if you wish. The bug in my testbed is a heap overflow of `40` bytes.
+For a proof of concept I will use the same testbed I used for another House that I made. You can find it [here](https://github.com/un1c0rn-the-pwnie/FSOPAgain/blob/main/poc3/house_of_error.c). If you remove the theme it's actually a simple testbed. In that testbed you have the ability to allocate chunks with a max size of `0x1000` bytes and you can free them if you wish. The bug in my testbed is a heap overflow of `40` bytes.
 
 # Exploit for House of disruption.
 ```python
