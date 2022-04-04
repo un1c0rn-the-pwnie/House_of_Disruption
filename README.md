@@ -1,9 +1,9 @@
-# House of disruption
-In this article I will describe a new powerful heap house I crafted which is applicable from glibc versions `2.26` until `2.35` (latest at the moment of writing this article). It's a pretty simple House but quite powerful with what you can do with it!
+# House of Disruption
+In this article I will describe a new powerful heap house I crafted which is applicable from glibc versions `2.26` until `2.35` (latest at the moment of writing this article) with the tcache enabled. It's a pretty simple House but quite powerful with what you can do with it!
 
-The main idea behind house of disruption is: by performing a simple large bin attack (which until 2.35 is unpatched) against `tcache` pointer, we can fool glibc into thinking that `tcache` is somewhere else on the heap. By crafting a fake tcache inside the large bin which `tcache` pointer is pointing to after the large bin attack, we can easily make `malloc` to return arbitrary chunks.
+The main idea behind house of disruption is: by performing a simple large bin attack (which until 2.35 is unpatched) against the `tcache` pointer, we can fool glibc into thinking that the `tcache` is located somewhere else on the heap. By crafting a fake tcache inside the large bin which the `tcache` pointer is pointing to after the large bin attack, we can easily make `malloc` to return arbitrary chunks.
 
-The only requirements for the house of disruption is a libc leak which we need inorder to locate the `tcache` pointer in memory and the ability to perform a large bin attack. Quite minimalistic isn't?
+The only requirements for the house of disruption is a libc leak which we need inorder to locate the `tcache` pointer in memory and the ability to perform a large bin attack. Quite minimalistic isn't it?
 
 # Dive into malloc internals
 For the house of disruption actually we just need to understand how tcache returns free tcache chunks back to the program.
@@ -20,7 +20,7 @@ tcache_get (size_t tc_idx)
   return (void *) e;
 }
 ```
-And this is actually pretty interesting. When you ask from malloc/realloc/calloc/etc a chunk in the tcache range (from `0x0` to `0x400` bytes), `malloc` will try to see if there is an available free tcache chunk in the range of your requested chunk. If it finds one it will call `tcache_get` to fetch a free chunk and it will return it back to the program that requested this chunk.
+And this is actually pretty interesting. When you ask from `ptmalloc2` a chunk in the tcache range (from `0x0` to `0x410` bytes), `ptmalloc2` will try to see if there is an available free tcache chunk. If it finds one it will call `tcache_get` to fetch it from the tcache and will return it back to the program.
 
 The most important thing you have to consider is how ptmalloc2 locates the tcache on the heap. And as you can see above it uses a global variable named `tcache`. This variable will be our target for our large bin attack later.
 ```c
@@ -28,9 +28,9 @@ static __thread tcache_perthread_struct *tcache = NULL;
 ```
 `tcache` is a per thread global variable and hence it is stored in the thread local storage of each thread. But for our single threaded program you can see it as a simple global variable which is **writable**.
 
-Because ptmalloc2 blindly trusts this `tcache` pointer, if you are able to modify him to point somewhere you can write a fake `tcache` you will be able eventually to make ptmalloc2 to return arbitrary chunks back to the program!
+Because ptmalloc2 blindly trusts this `tcache` pointer, if you are able to modify him to point to a place which you control, by crafting a fake tcache in that place you will be able eventually to make ptmalloc2 to return arbitrary chunks back to the program!
 
-For our case the only place we can craft a fake tcache is on the heap and so we will perform a large bin attack to put a heap address into the `tcache` pointer.
+In our PoC the only place we can craft a fake tcache is on the heap and so we will perform a large bin attack to put a heap address into the `tcache` pointer.
 
 # Proof of Concept
 For a proof of concept I will use the same testbed I used for another House that I made. You can find it ![here](https://github.com/un1c0rn-the-pwnie/FSOPAgain/blob/main/poc3/house_of_error.c). If you remove the theme it's actually a simple testbed. In that testbed you have the ability to allocate chunks with a max size of `0x1000` bytes and you can free them if you wish. The bug in my testbed is a heap overflow of `40` bytes.
